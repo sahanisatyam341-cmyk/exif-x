@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>EXIF.X</title>
+<style>
+:root{--bg:#050810;--card:#0d1322;--bd:#1e293b;--ac:#22d3ee;--pu:#8b5cf6;--tx:#e2e8f0;--mu:#94a3b8}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);background-image:radial-gradient(circle at 10% 10%,rgba(0,240,255,.08),transparent 40%),radial-gradient(circle at 90% 90%,rgba(139,92,246,.1),transparent 40%);color:var(--tx);font-family:system-ui,sans-serif;min-height:100vh}
+header{padding:14px 16px;border-bottom:1px solid var(--bd);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:rgba(5,8,16,.92);backdrop-filter:blur(8px);z-index:5}
+h1{margin:0;font:700 19px ui-monospace,monospace;letter-spacing:1px}h1 b{color:var(--ac)}
+main{max-width:900px;margin:0 auto;padding:16px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:14px;margin-bottom:12px}
+.btn{display:block;width:100%;padding:14px;border:0;border-radius:14px;font-weight:800;font-size:15px;margin-bottom:10px;color:#04121a;background:linear-gradient(90deg,#06b6d4,#3b82f6)}
+.btn.p{background:linear-gradient(90deg,#7c3aed,#4f46e5);color:#fff}.btn.g{background:#1e293b;color:var(--tx);font-weight:600}.btn.e{background:#064e3b;color:#6ee7b7;font-weight:600}
+input[type=text],input[type=url]{width:100%;background:#020617;border:1px solid #334155;color:#fff;border-radius:12px;padding:11px;font-size:14px;margin-bottom:8px}
+.tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:8px}.tabs::-webkit-scrollbar{display:none}
+.tabs button{flex:none;padding:10px 14px;border-radius:12px;border:1px solid var(--bd);background:#0f172a;color:var(--tx);font:600 12px ui-monospace,monospace}
+.tabs button.on{border-color:var(--ac);color:var(--ac);background:rgba(34,211,238,.12)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pill{background:#0f172a;border:1px solid var(--bd);border-radius:12px;padding:10px}.pill small{color:var(--mu);display:block;font-size:11px}.pill b{font:700 16px ui-monospace,monospace}
+table{width:100%;border-collapse:collapse;font-size:13px}td{padding:7px 4px;border-bottom:1px solid var(--bd);vertical-align:top;word-break:break-all}td:first-child{color:var(--mu);width:42%}
+img.pv{max-width:100%;max-height:300px;display:block;margin:0 auto;border-radius:12px}canvas{max-width:100%;border-radius:12px;display:block;margin:8px auto}
+.tag{display:inline-block;padding:3px 10px;border-radius:99px;font:600 11px ui-monospace,monospace}
+.ok{background:rgba(16,185,129,.15);color:#6ee7b7}.warn{background:rgba(245,158,11,.18);color:#fcd34d}.bad{background:rgba(239,68,68,.18);color:#fca5a5}
+.sw{display:flex;align-items:center;gap:10px;margin:6px 0;font:13px ui-monospace,monospace}.sw i{width:34px;height:34px;border-radius:8px;border:1px solid #fff3;flex:none}
+pre{white-space:pre-wrap;word-break:break-all;font:11px ui-monospace,monospace;max-height:380px;overflow:auto;margin:0;color:#a7f3d0}
+.hide{display:none}#toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#0f172a;border:1px solid var(--ac);padding:10px 16px;border-radius:14px;font-size:13px;opacity:0;transition:.3s;z-index:9;pointer-events:none;max-width:90%}
+</style></head><body>
+<header><h1>EXIF<b>.X</b> <span style="font:600 10px system-ui;color:var(--ac);border:1px solid #22d3ee55;border-radius:99px;padding:2px 8px">OSINT LAB</span></h1><span class="tag ok">Offline Engine</span></header>
+<main>
+<section id="up">
+ <div style="text-align:center;margin:8px 0 16px"><span class="tag ok">100% LOCAL • ZERO UPLOADS</span>
+ <h2 style="margin:10px 0 4px">Photo ka <span style="color:var(--ac)">hidden data</span> nikalo</h2>
+ <div style="color:var(--mu);font-size:13px">Camera info, GPS, edit-detect (ELA), hash, colors aur hidden strings</div></div>
+ <div class="card">
+  <input type="file" id="fg" accept="image/*" class="hide"><input type="file" id="fc" accept="image/*" capture="environment" class="hide">
+  <button class="btn" onclick="fg.click()">📁 Choose Photo / Gallery</button>
+  <button class="btn p" onclick="fc.click()">📸 Capture Camera</button>
+  <button class="btn g" id="bp">📋 Paste Copied Image</button>
+  <button class="btn e" id="bd">🧪 Load Demo Sample (GPS + edited tag)</button>
+  <input type="url" id="ui" placeholder="https://example.com/photo.jpg"><button class="btn g" id="bu" style="margin:0">Load URL</button>
+ </div>
+</section>
+<section id="rs" class="hide">
+ <div class="card"><b id="fn">file</b><div id="fs" style="color:var(--mu);font-size:12px;margin-top:3px"></div>
+  <div style="display:flex;gap:8px;margin-top:10px"><button class="btn g" style="margin:0" id="bn">← New</button><button class="btn g" style="margin:0" id="bj">Export JSON</button><button class="btn" style="margin:0" id="bc">Clean Image</button></div></div>
+ <div class="tabs" id="tabs"><button data-t="ov" class="on">Overview</button><button data-t="fx">🔥 Flex Card</button><button data-t="ex">EXIF & GPS</button><button data-t="el">ELA Tamper</button><button data-t="co">Colors</button><button data-t="st">Strings</button></div>
+ <div id="p-ov" class="pn"></div><div id="p-fx" class="pn hide"></div><div id="p-ex" class="pn hide"></div>
+ <div id="p-el" class="pn hide"><div class="card"><div style="color:var(--mu);font-size:13px">ELA: edit hue hisse zyada chamakte hain. Poori photo ek jaisi ho to usually original hai.</div><canvas id="elc"></canvas><div id="els"></div></div></div>
+ <div id="p-co" class="pn hide"></div>
+ <div id="p-st" class="pn hide"><div class="card"><input type="text" id="sf" placeholder="Strings me search..."><pre id="sp"></pre></div></div>
+</section>
+</main><div id="toast"></div>
+<script>
+const $=s=>document.querySelector(s),esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let S=null;const toast=t=>{const e=$('#toast');e.textContent=t;e.style.opacity=1;setTimeout(()=>e.style.opacity=0,2400)};
+const TG={0x010F:'Make',0x0110:'Model',0x0112:'Orientation',0x0131:'Software',0x0132:'DateTime',0x013B:'Artist',0x8298:'Copyright',0x829A:'ExposureTime',0x829D:'FNumber',0x8827:'ISO',0x9003:'DateTimeOriginal',0x9004:'DateTimeDigitized',0x9204:'ExposureBias',0x9209:'Flash',0x920A:'FocalLength',0xA002:'PixelXDimension',0xA003:'PixelYDimension',0xA405:'FocalLength35mm',0xA430:'CameraOwnerName',0xA431:'BodySerialNumber',0xA433:'LensMake',0xA434:'LensModel'};
+function readTiff(dv,s){const le=dv.getUint16(s)===0x4949,u16=p=>dv.getUint16(s+p,le),u32=p=>dv.getUint32(s+p,le);
+ function val(e){const ty=u16(e+2),c=u32(e+4),sz={1:1,2:1,3:2,4:4,5:8,7:1,9:4,10:8}[ty]||1,q=sz*c>4?u32(e+8):e+8,o=[];
+  if(ty==2){let t='';for(let i=0;i<c-1;i++)t+=String.fromCharCode(dv.getUint8(s+q+i));return t}
+  for(let i=0;i<Math.min(c,8);i++){if(ty==3)o.push(u16(q+i*2));else if(ty==4)o.push(u32(q+i*4));else if(ty==5){const d=u32(q+i*8+4);o.push(d?u32(q+i*8)/d:0)}else if(ty==10){const d=dv.getInt32(s+q+i*8+4,le);o.push(d?dv.getInt32(s+q+i*8,le)/d:0)}else o.push(dv.getUint8(s+q+i))}
+  return c==1?o[0]:o}
+ function ifd(off){const r={},n=u16(off);for(let i=0;i<n;i++){const e=off+2+i*12;try{r[u16(e)]=val(e)}catch(x){}}return r}
+ const a=ifd(u32(4)),r={i:a,x:a[0x8769]?ifd(a[0x8769]):{},g:a[0x8825]?ifd(a[0x8825]):{}};return r}
+function parseExif(buf){try{const dv=new DataView(buf);if(dv.getUint16(0)!==0xFFD8)return null;let o=2;while(o<dv.byteLength-4){if(dv.getUint8(o)!==0xFF)break;const m=dv.getUint8(o+1),l=dv.getUint16(o+2);
+ if(m===0xE1&&dv.getUint32(o+4)===0x45786966)return readTiff(dv,o+10);if(m===0xDA)break;o+=2+l}}catch(e){}return null}
+const fmt=(k,v)=>k==0x829A?(v<1?'1/'+Math.round(1/v)+' s':v+' s'):k==0x829D?'f/'+(+v).toFixed(1):k==0x920A?(+v).toFixed(1)+' mm':Array.isArray(v)?v.join(', '):v;
+function gps(g){const d=a=>Array.isArray(a)?a[0]+a[1]/60+a[2]/3600:null;if(!g[2]||!g[4])return null;let la=d(g[2]),lo=d(g[4]);if(g[1]=='S')la=-la;if(g[3]=='W')lo=-lo;return{lat:la,lon:lo,alt:g[6]}}
+async function sha(buf){const h=await crypto.subtle.digest('SHA-256',buf);return[...new Uint8Array(h)].map(b=>b.toString(16).padStart(2,'0')).join('')}
+function tail(buf){const u=new Uint8Array(buf);if(u[0]==0xFF&&u[1]==0xD8){for(let i=u.length-2;i>1;i--)if(u[i]==0xFF&&u[i+1]==0xD9)return u.length-i-2}
+ if(u[0]==0x89&&u[1]==0x50){for(let i=u.length-12;i>8;i--)if(u[i+4]==73&&u[i+5]==69&&u[i+6]==78&&u[i+7]==68)return u.length-i-12}return 0}
+function strings(buf){const u=new Uint8Array(buf),o=[];let t='';for(let i=0;i<u.length&&o.length<600;i++){const c=u[i];if(c>=32&&c<127)t+=String.fromCharCode(c);else{if(t.length>=6)o.push(t.slice(0,120));t=''}}return o}
+async function load(file){try{const buf=await file.arrayBuffer(),url=URL.createObjectURL(new Blob([buf],{type:file.type||'image/jpeg'})),im=new Image();im.src=url;await im.decode();
+ const ex=parseExif(buf),h=await sha(buf);S={name:file.name||'photo.jpg',size:buf.byteLength,type:file.type,buf,im,url,w:im.naturalWidth,h:im.naturalHeight,ex,hash:h,tail:tail(buf),str:strings(buf)};render();$('#up').classList.add('hide');$('#rs').classList.remove('hide');scrollTo(0,0)}catch(e){toast('Image khul nahi payi')}}
+function render(){const e=S.ex,I=e?e.i:{},X=e?e.x:{},G=e?gps(e.g):null,sw=String(I[0x0131]||''),edited=/photoshop|lightroom|gimp|snapseed|canva|picsart|paint|affinity|pixlr/i.test(sw);
+ $('#fn').textContent=S.name;$('#fs').textContent=S.w+' × '+S.h+' px • '+(S.size/1024).toFixed(1)+' KB • '+(S.type||'image');
+ const row=(a,b)=>'<tr><td>'+a+'</td><td>'+esc(b)+'</td></tr>';
+ $('#p-ov').innerHTML='<div class="card"><img class="pv" src="'+S.url+'"><div style="text-align:center;margin-top:10px"><span class="tag '+(e?'warn':'ok')+'">'+(e?'EXIF mila':'EXIF nahi (stripped)')+'</span> '+(edited?'<span class="tag bad">Edited: '+esc(sw)+'</span>':'')+'</div></div>'
+ +'<div class="grid"><div class="pill"><small>Camera</small><b>'+esc((I[0x010F]||'')+' '+(I[0x0110]||'')||'--')+'</b></div><div class="pill"><small>ISO</small><b>'+esc(X[0x8827]||'--')+'</b></div><div class="pill"><small>Aperture</small><b>'+(X[0x829D]?fmt(0x829D,X[0x829D]):'--')+'</b></div><div class="pill"><small>Shutter</small><b>'+(X[0x829A]?fmt(0x829A,X[0x829A]):'--')+'</b></div></div>'
+ +'<div class="card" style="margin-top:12px"><table>'+row('SHA-256',S.hash)+row('Size',S.size+' bytes')+row('Dimensions',S.w+' × '+S.h)+row('Hidden extra bytes',S.tail>16?S.tail+' ⚠️ (image ke baad data)':S.tail+' (normal)')+'</table></div>';
+ let rows='';if(e){for(const sec of [I,X])for(const k in sec)if(TG[k])rows+=row(TG[k],fmt(+k,sec[k]))}
+ $('#p-ex').innerHTML='<div class="card"><h3 style="margin:0 0 8px">📍 GPS</h3>'+(G?'<table>'+row('Latitude',G.lat.toFixed(6))+row('Longitude',G.lon.toFixed(6))+(G.alt?row('Altitude',(+G.alt).toFixed(1)+' m'):'')+'</table><a class="btn" style="text-align:center;text-decoration:none;margin-top:10px" href="https://maps.google.com/?q='+G.lat+','+G.lon+'">🗺️ Map par kholo</a>':'<span class="tag ok">GPS nahi mila</span>')+'</div><div class="card"><h3 style="margin:0 0 8px">📷 EXIF Tags</h3>'+(rows?'<table>'+rows+'</table>':'<span class="tag ok">Koi EXIF nahi</span>')+'</div>';
+ let sc=0,L=[];if(G){sc+=50;L.push(['📍 GPS location leak','bad'])}if(I[0x010F]||I[0x0110]){sc+=20;L.push(['📱 Device: '+esc((I[0x010F]||'')+' '+(I[0x0110]||'')),'warn'])}if(I[0x9003]||I[0x0132]){sc+=15;L.push(['🕒 Date/time: '+esc(X[0x9003]||I[0x0132]),'warn'])}if(X[0xA431]||X[0xA430]||I[0x013B]){sc+=15;L.push(['👤 Serial/owner/artist mila','bad'])}if(edited){L.push(['🛠️ Editing software: '+esc(sw),'warn'])}if(S.tail>16)L.push(['🕳️ Hidden extra data: '+S.tail+' bytes','bad']);if(!L.length)L.push(['✅ Kuch bhi leak nahi hua','ok']);
+ sc=Math.min(100,sc);const col=sc>=60?'#ef4444':sc>=30?'#f59e0b':'#10b981';
+ $('#p-fx').innerHTML='<div class="card" style="text-align:center"><div style="font:800 54px ui-monospace,monospace;color:'+col+'">'+sc+'<small style="font-size:18px">/100</small></div><div style="color:var(--mu);font-size:13px">Privacy Risk Score</div><div style="height:10px;background:#1e293b;border-radius:9px;margin:12px 0"><div style="height:100%;width:'+sc+'%;background:'+col+';border-radius:9px"></div></div></div><div class="card">'+L.map(x=>'<div style="margin:8px 0"><span class="tag '+x[1]+'">'+x[0]+'</span></div>').join('')+'</div><div class="card" style="color:var(--mu);font-size:13px">Tip: share karne se pehle "Clean Image" dabao, usse saara metadata hat jata hai.</div>';
+ palette();ela();$('#sp').textContent=S.str.join('\n')||'(kuch nahi mila)';S.sc=sc}
+function palette(){const c=document.createElement('canvas');c.width=c.height=48;const x=c.getContext('2d');x.drawImage(S.im,0,0,48,48);const d=x.getImageData(0,0,48,48).data,b={};
+ for(let i=0;i<d.length;i+=4){const k=(d[i]>>5)<<6|(d[i+1]>>5)<<3|d[i+2]>>5,o=b[k]||(b[k]=[0,0,0,0]);o[0]+=d[i];o[1]+=d[i+1];o[2]+=d[i+2];o[3]++}
+ const t=Object.values(b).sort((a,c)=>c[3]-a[3]).slice(0,8),n=48*48;S.cols=t.map(o=>'#'+[0,1,2].map(j=>Math.round(o[j]/o[3]).toString(16).padStart(2,'0')).join(''));
+ $('#p-co').innerHTML='<div class="card">'+t.map((o,i)=>'<div class="sw" data-h="'+S.cols[i]+'"><i style="background:'+S.cols[i]+'"></i><b>'+S.cols[i].toUpperCase()+'</b><span style="color:var(--mu)">'+(o[3]/n*100).toFixed(1)+'%</span></div>').join('')+'<div style="color:var(--mu);font-size:12px;margin-top:6px">Hex par tap = copy</div></div>';
+ document.querySelectorAll('.sw').forEach(e=>e.onclick=()=>{try{navigator.clipboard.writeText(e.dataset.h);toast('Copied '+e.dataset.h)}catch(x){toast(e.dataset.h)}})}
+async function ela(){const k=Math.min(1,800/Math.max(S.w,S.h)),w=Math.round(S.w*k),h=Math.round(S.h*k),c=$('#elc');c.width=w;c.height=h;const x=c.getContext('2d');x.drawImage(S.im,0,0,w,h);const A=x.getImageData(0,0,w,h);
+ const blob=await new Promise(r=>c.toBlob(r,'image/jpeg',.9)),bm=await createImageBitmap(blob);x.drawImage(bm,0,0);const B=x.getImageData(0,0,w,h);let sum=0;
+ for(let i=0;i<A.data.length;i+=4){let m=0;for(let j=0;j<3;j++)m=Math.max(m,Math.abs(A.data[i+j]-B.data[i+j]));sum+=m;const v=Math.min(255,m*18);B.data[i]=v;B.data[i+1]=v*.8;B.data[i+2]=v;B.data[i+3]=255}
+ x.putImageData(B,0,0);const avg=sum/(A.data.length/4);$('#els').innerHTML='<span class="tag '+(avg>6?'warn':'ok')+'">Average diff: '+avg.toFixed(2)+'</span>'}
+function dl(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove()}
+$('#bj').onclick=()=>{const e=S.ex;dl(new Blob([JSON.stringify({file:S.name,size:S.size,width:S.w,height:S.h,sha256:S.hash,hiddenExtraBytes:S.tail,privacyScore:S.sc,exif:e?e.i:null,exifSub:e?e.x:null,gps:e?gps(e.g):null,colors:S.cols},null,2)],{type:'application/json'}),'exifx_report.json')};
+$('#bc').onclick=async()=>{const c=document.createElement('canvas'),k=Math.min(1,4096/Math.max(S.w,S.h));c.width=S.w*k;c.height=S.h*k;c.getContext('2d').drawImage(S.im,0,0,c.width,c.height);c.toBlob(b=>dl(b,'clean_photo.jpg'),'image/jpeg',.95)};
+$('#bn').onclick=()=>{$('#rs').classList.add('hide');$('#up').classList.remove('hide')};
+$('#tabs').onclick=e=>{const t=e.target.dataset.t;if(!t)return;document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b==e.target));document.querySelectorAll('.pn').forEach(p=>p.classList.toggle('hide',p.id!='p-'+t))};
+$('#sf').oninput=e=>{const q=e.target.value.toLowerCase();$('#sp').textContent=S.str.filter(s=>s.toLowerCase().includes(q)).join('\n')};
+fg.onchange=fc.onchange=e=>{if(e.target.files[0])load(e.target.files[0]);e.target.value=''};
+$('#bp').onclick=async()=>{try{for(const it of await navigator.clipboard.read())for(const t of it.types)if(t.startsWith('image/'))return load(new File([await it.getType(t)],'pasted.png',{type:t}));toast('Clipboard me image nahi hai')}catch(e){toast('Paste allow nahi hua')}};
+$('#bu').onclick=async()=>{try{const r=await fetch($('#ui').value.trim());const b=await r.blob();load(new File([b],'url_image',{type:b.type}))}catch(e){toast('URL load nahi hui (site ne block kiya)')}};
+function demoExif(){const en=s=>new TextEncoder().encode(s+'\0'),mk=en('Satyam Cam'),md=en('Fire X1'),sw=en('Adobe Photoshop 25.0');let o=8+2+48+4;const a=o;o+=mk.length;const b=o;o+=md.length;const c=o;o+=sw.length;const g=o;o+=2+48+4;const la=o;o+=24;const lo=o;o+=24;
+ const dv=new DataView(new ArrayBuffer(o)),u=new Uint8Array(dv.buffer);let p=0;const w16=v=>{dv.setUint16(p,v,true);p+=2},w32=v=>{dv.setUint32(p,v,true);p+=4},en2=(t,ty,n,v)=>{w16(t);w16(ty);w32(n);w32(v)};
+ w16(0x4949);w16(42);w32(8);w16(4);en2(0x010F,2,mk.length,a);en2(0x0110,2,md.length,b);en2(0x0131,2,sw.length,c);en2(0x8825,4,1,g);w32(0);u.set(mk,a);u.set(md,b);u.set(sw,c);
+ p=g;w16(4);en2(1,2,2,0x4E);en2(2,5,3,la);en2(3,2,2,0x45);en2(4,5,3,lo);w32(0);p=la;[28,1,36,1,50,1].forEach(w32);p=lo;[77,1,12,1,30,1].forEach(w32);
+ const seg=new Uint8Array(10+u.length);seg.set([0xFF,0xE1]);new DataView(seg.buffer).setUint16(2,8+u.length);seg.set([69,120,105,102,0,0],4);seg.set(u,10);return seg}
+$('#bd').onclick=async()=>{const c=document.createElement('canvas');c.width=600;c.height=400;const x=c.getContext('2d'),gr=x.createLinearGradient(0,0,600,400);gr.addColorStop(0,'#06b6d4');gr.addColorStop(.5,'#7c3aed');gr.addColorStop(1,'#f43f5e');x.fillStyle=gr;x.fillRect(0,0,600,400);x.fillStyle='#fff';x.font='bold 64px sans-serif';x.textAlign='center';x.fillText('EXIF.X DEMO',300,215);
+ const b=await new Promise(r=>c.toBlob(r,'image/jpeg',.9)),j=new Uint8Array(await b.arrayBuffer()),s=demoExif(),out=new Uint8Array(j.length+s.length);out.set(j.slice(0,2));out.set(s,2);out.set(j.slice(2),2+s.length);load(new File([out],'demo_sample.jpg',{type:'image/jpeg'}))};
+</script></body></html>
