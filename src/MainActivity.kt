@@ -1,12 +1,15 @@
 package com.satyam.exifx
 
 import android.app.Activity
+import android.content.ContentUris
 import android.content.ContentValues
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.provider.DocumentsContract
 import android.provider.MediaStore
 import android.util.Base64
 import android.webkit.JavascriptInterface
@@ -29,6 +32,7 @@ class MainActivity : Activity() {
         super.onCreate(savedInstanceState)
         window.statusBarColor = 0xFF050810.toInt()
         window.navigationBarColor = 0xFF050810.toInt()
+        askPermissions()
         web = WebView(this)
         setContentView(web)
 
@@ -84,6 +88,31 @@ class MainActivity : Activity() {
         web.loadUrl("https://appassets.androidplatform.net/assets/index.html")
     }
 
+    private fun askPermissions() {
+        val list = ArrayList<String>()
+        if (Build.VERSION.SDK_INT >= 33) list.add("android.permission.READ_MEDIA_IMAGES")
+        else list.add("android.permission.READ_EXTERNAL_STORAGE")
+        if (Build.VERSION.SDK_INT >= 29) list.add("android.permission.ACCESS_MEDIA_LOCATION")
+        val need = list.filter { checkSelfPermission(it) != PackageManager.PERMISSION_GRANTED }
+        if (need.isNotEmpty()) requestPermissions(need.toTypedArray(), 2)
+    }
+
+    private fun original(u: Uri): Uri {
+        if (Build.VERSION.SDK_INT < 29) return u
+        if (checkSelfPermission("android.permission.ACCESS_MEDIA_LOCATION") != PackageManager.PERMISSION_GRANTED) return u
+        return try {
+            val m = if (u.authority == "com.android.providers.media.documents") {
+                val id = DocumentsContract.getDocumentId(u).substringAfter(":").toLong()
+                ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)
+            } else u
+            val o = MediaStore.setRequireOriginal(m)
+            contentResolver.openInputStream(o)?.close()
+            o
+        } catch (e: Exception) {
+            u
+        }
+    }
+
     inner class Bridge {
         @JavascriptInterface
         fun save(b64: String, mime: String) {
@@ -127,7 +156,8 @@ class MainActivity : Activity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == 1) {
-            chooser?.onReceiveValue(WebChromeClient.FileChooserParams.parseResult(resultCode, data))
+            val res = WebChromeClient.FileChooserParams.parseResult(resultCode, data)
+            chooser?.onReceiveValue(res?.map { original(it) }?.toTypedArray())
             chooser = null
         }
     }
