@@ -26,4 +26,8 @@ const k=Math.min(1,4096/Math.max(im.naturalWidth,im.naturalHeight)),c=document.c
 const b=await new Promise(r=>c.toBlob(r,'image/jpeg',.95));dl(b,'clean_'+f.name);if(G)g++;d.innerHTML=(G?'📍 GPS tha, ':'✅ ')+'clean+saved: '+esc(f.name)}catch(x){d.textContent='❌ '+f.name}
 await new Promise(r=>setTimeout(r,700))}
 bl.insertAdjacentHTML('beforeend','<b>Done: '+fs.length+' photos, '+g+' mein GPS tha. Gallery > EXIF.X folder dekho.</b>');fi.value=''};
-})();
+})();function manual(){const k='loc_'+S.hash,t=S.ex&&(S.ex.x[0x9003]||S.ex.i[0x0132])||'';
+$('#p-ex').insertAdjacentHTML('afterbegin','<div class="card"><h3 style="margin:0 0 8px">📍 Location khud jodo</h3><div style="color:var(--mu);font-size:13px;margin-bottom:8px">'+(t?'Photo ka time: <b>'+esc(t)+'</b><br>Google Maps → Your Timeline mein is time pe dekho, phir link ya coordinates yahan paste karo.':'Maps link ya coordinates paste karo.')+'</div><input type="text" id="ml" placeholder="Maps link ya 26.91,75.78"><button class="btn" id="mb" style="margin-top:8px">Dikhao + Save</button><div id="mo"></div></div>');
+const show=v=>{const m=v.match(/(-?\d+\.\d+)[,\s]+(-?\d+\.\d+)/);if(!m)return $('#mo').textContent='Coordinates nahi mile';const la=+m[1],lo=+m[2],b=.01;localStorage.setItem(k,v);$('#mo').innerHTML='<iframe style="width:100%;height:240px;border:0;border-radius:12px;margin-top:8px" src="https://www.openstreetmap.org/export/embed.html?bbox='+[lo-b,la-b,lo+b,la+b]+'&marker='+la+','+lo+'"></iframe>'};
+$('#mb').onclick=()=>show($('#ml').value);const s=localStorage.getItem(k);if(s){$('#ml').value=s;show(s)}}
+const R3=render;render=function(){R3();manual()};
