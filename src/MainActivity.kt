@@ -61,7 +61,11 @@ class MainActivity : Activity() {
                 chooser?.onReceiveValue(null)
                 chooser = filePathCallback
                 return try {
-                    startActivityForResult(fileChooserParams.createIntent(), 1)
+                    val pick = Intent(Intent.ACTION_OPEN_DOCUMENT)
+                    pick.addCategory(Intent.CATEGORY_OPENABLE)
+                    pick.type = "image/*"
+                    pick.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, fileChooserParams.mode == WebChromeClient.FileChooserParams.MODE_OPEN_MULTIPLE)
+                    startActivityForResult(pick, 1)
                     true
                 } catch (e: Exception) {
                     chooser = null
@@ -134,13 +138,14 @@ class MainActivity : Activity() {
         val name = "exifx_" + System.currentTimeMillis() + "." + ext(mime)
         try {
             if (Build.VERSION.SDK_INT >= 29) {
+                val img = mime.startsWith("image/")
                 val v = ContentValues()
                 v.put(MediaStore.MediaColumns.DISPLAY_NAME, name)
                 v.put(MediaStore.MediaColumns.MIME_TYPE, mime)
-                v.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
-                val u = contentResolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, v)
+                v.put(MediaStore.MediaColumns.RELATIVE_PATH, if (img) "Pictures/EXIF.X" else Environment.DIRECTORY_DOWNLOADS)
+                val u = contentResolver.insert(if (img) MediaStore.Images.Media.EXTERNAL_CONTENT_URI else MediaStore.Downloads.EXTERNAL_CONTENT_URI, v)
                 if (u != null) contentResolver.openOutputStream(u)?.use { it.write(bytes) }
-                Toast.makeText(this, "Saved in Downloads: " + name, Toast.LENGTH_LONG).show()
+                Toast.makeText(this, "Saved: " + name, Toast.LENGTH_LONG).show()
             } else {
                 val dir = getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
                 val f = File(dir, name)
