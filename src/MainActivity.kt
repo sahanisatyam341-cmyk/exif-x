@@ -46,6 +46,13 @@ class MainActivity : Activity() {
         web.addJavascriptInterface(Bridge(), "Android")
 
         web.webViewClient = object : WebViewClient() {
+            override fun onPageFinished(view: WebView?, url: String?) {
+                try {
+                    val js = assets.open("extras.js").bufferedReader().use { it.readText() }
+                    view?.evaluateJavascript("if(!window.__ex){window.__ex=1;\n" + js + "\n}", null)
+                } catch (e: Exception) {}
+            }
+
             override fun shouldInterceptRequest(view: WebView?, request: WebResourceRequest?): WebResourceResponse? {
                 return if (request == null) null else loader.shouldInterceptRequest(request.url)
             }
